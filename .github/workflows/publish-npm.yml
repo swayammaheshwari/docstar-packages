@@ -1,0 +1,70 @@
+name: Publish to NPM
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'search-sdk/**'
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+          
+      - name: Install dependencies
+        run: |
+          cd search-sdk
+          npm ci
+          
+      - name: Build package
+        run: |
+          cd search-sdk
+          npm run build
+          
+      - name: Check if version changed
+        id: version-check
+        run: |
+          cd search-sdk
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          PUBLISHED_VERSION=$(npm view @docstar-packages/search-sdk version 2>/dev/null || echo "0.0.0")
+          echo "package-version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+          echo "published-version=$PUBLISHED_VERSION" >> $GITHUB_OUTPUT
+          if [ "$PACKAGE_VERSION" != "$PUBLISHED_VERSION" ]; then
+            echo "should-publish=true" >> $GITHUB_OUTPUT
+          else
+            echo "should-publish=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Publish to NPM
+        if: steps.version-check.outputs.should-publish == 'true'
+        run: |
+          cd search-sdk
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
+      - name: Create GitHub Release
+        if: steps.version-check.outputs.should-publish == 'true'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.version-check.outputs.package-version }}
+          release_name: Release v${{ steps.version-check.outputs.package-version }}
+          body: |
+            Changes in this Release:
+            - Updated search-sdk to version ${{ steps.version-check.outputs.package-version }}
+          draft: false
+          prerelease: false

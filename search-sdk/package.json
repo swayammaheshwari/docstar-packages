@@ -1,0 +1,40 @@
+{
+    "name": "@docstar-packages/search-sdk",
+    "version": "1.0.1",
+    "description": "A React search SDK component library",
+    "main": "dist/index.cjs.js",
+    "module": "dist/index.esm.js",
+    "types": "dist/index.d.ts",
+    "files": [
+        "dist",
+        "README.md"
+    ],
+    "scripts": {
+        "build": "rollup -c",
+        "prepublishOnly": "npm run build"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/swayammaheshwari/docstar-packages.git",
+        "directory": "search-sdk"
+    },
+    "keywords": ["react", "search", "sdk", "component"],
+    "author": "Swayam Maheshwari",
+    "license": "MIT",
+    "publishConfig": {
+        "access": "public"
+    },
+    "peerDependencies": {
+        "react": "^19.1.1",
+        "react-dom": "^19.1.1"
+    },
+    "devDependencies": {
+        "@babel/preset-env": "^7.28.3",
+        "@babel/preset-react": "^7.27.1",
+        "@rollup/plugin-babel": "^6.0.4",
+        "@rollup/plugin-commonjs": "^28.0.6",
+        "@rollup/plugin-node-resolve": "^16.0.1",
+        "rollup": "^4.50.0",
+        "rollup-plugin-peer-deps-external": "^2.2.4"
+    }
+}
