@@ -1,0 +1,89 @@
+name: Scripts - CDN Publishing
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'scripts/**'
+  release:
+    types: [published]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Build Scripts
+      run: |
+        cd scripts
+        npm install
+        npm run build
+        
+    - name: Copy built files for CDN
+      run: |
+        mkdir -p cdn-dist
+        cp scripts/*.min.js cdn-dist/
+        # Copy any demo files if they exist
+        [ -f index.html ] && cp index.html cdn-dist/ || echo "No index.html found"
+        
+    - name: Deploy to GitHub Pages
+      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./cdn-dist
+        publish_branch: gh-pages
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: scripts-dist
+        path: cdn-dist/
+
+  release:
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Build Scripts
+      run: |
+        cd scripts
+        npm install
+        npm run build
+        
+    - name: Create release archive
+      run: |
+        zip -r docstar-scripts-${{ github.event.release.tag_name }}.zip scripts/
+        
+    - name: Upload release assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./docstar-scripts-${{ github.event.release.tag_name }}.zip
+        asset_name: docstar-scripts-${{ github.event.release.tag_name }}.zip
+        asset_content_type: application/zip

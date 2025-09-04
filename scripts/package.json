@@ -1,0 +1,12 @@
+{
+  "name": "docstar-scripts",
+  "version": "1.0.0",
+  "description": "Browser scripts for DocStar SDK",
+  "private": true,
+  "scripts": {
+    "build": "node build.js"
+  },
+  "devDependencies": {
+    "terser": "^5.44.0"
+  }
+}
