@@ -1,4 +1,4 @@
-name: Build and Deploy Search SDK
+name: Publish JavaScript Script
 
 on:
   push:
@@ -191,6 +191,10 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    
+    concurrency:
+      group: "pages"
+      cancel-in-progress: false
       
     steps:
     - name: Checkout code
@@ -210,6 +214,8 @@ jobs:
         
     - name: Setup Pages
       uses: actions/configure-pages@v4
+      with:
+        enablement: true
       
     - name: Upload to GitHub Pages
       uses: actions/upload-pages-artifact@v3
