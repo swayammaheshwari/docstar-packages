@@ -3,12 +3,8 @@ name: Publish JavaScript Script
 on:
   push:
     branches: [ main, master ]
-    paths:
-      - 'search-sdk/**'
   pull_request:
     branches: [ main, master ]
-    paths:
-      - 'search-sdk/**'
   release:
     types: [published]
 
